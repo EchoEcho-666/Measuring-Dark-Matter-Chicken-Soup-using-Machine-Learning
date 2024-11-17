@@ -3,9 +3,10 @@ import limpy.powerspectra as lp
 import limpy.params as p
 import limpy.utils as lu
 import limpy.plotter as lplt
+import numpy as np
 
 
-def get_power_spectrum_intensity_mapping(z, k_range=(-2, 1), line_name="CII158", model_name='Fonseca16', sfr_model='Silva15'):
+def get_ps_intensity_mapping(z, k_range=(-2, 1), line_name="CII158", model_name='Fonseca16', sfr_model='Silva15'):
     """Generate the power spectrum (k and pk) from intensity mapping with the halo model.
 
     Parameters
@@ -17,7 +18,7 @@ def get_power_spectrum_intensity_mapping(z, k_range=(-2, 1), line_name="CII158",
     """
 
     k = np.logspace(*k_range, num=1000)
-    pk_theory = lt.Pk_line(
+    pk_theory = ll.theory().Pk_line(
         k,
         z,
         line_name=line_name,
@@ -28,13 +29,15 @@ def get_power_spectrum_intensity_mapping(z, k_range=(-2, 1), line_name="CII158",
 
     return k, pk_theory
 
-def get_power_spectrum_point_sources(z, line_name="CII158", model_name='Fonseca16', sfr_model='Silva15'):
+def get_ps_point_sources(z, halo_file_path, line_name="CII158", model_name='Fonseca16', sfr_model='Silva15'):
     """Generate a power spectrum with point source data (the halo file).
 
     Parameters
     ----------
     z : float
         The redshift.
+    halo_file_path: str
+        The path to the npz halo file.
     line_name : str
         The spectrum line name.
     model_name : str
@@ -49,7 +52,8 @@ def get_power_spectrum_point_sources(z, line_name="CII158", model_name='Fonseca1
     boxsize = 205 # Length of the box 
 
     sim = ll.lim_sims(
-        halo_file_path='halos_L205_z7.00.npz',
+        halo_file_path,
+        z,
         sfr_model=sfr_model,
         model_name=model_name,
         line_name=line_name,
@@ -65,7 +69,7 @@ def get_power_spectrum_point_sources(z, line_name="CII158", model_name='Fonseca1
     Ig = sim.make_intensity_grid()
     ngrid_new = np.shape(Ig)[2]
     kb, pkb = lp.get_pk3d(
-        Ig_beam,
+        Ig,
         boxsize,
         boxsize,
         boxsize,
